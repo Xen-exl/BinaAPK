@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ms">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xen-BinaAPK | Pembangun APK Automatik</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        xen: {
+                            50: '#f0fdf4',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+
+<body
+    class="bg-gray-900 text-gray-100 min-h-screen relative overflow-hidden flex flex-col items-center justify-center p-4">
+    <!-- Background Decor -->
+    <div
+        class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-xen-600 rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-pulse">
+    </div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-pulse"
+        style="animation-delay: 2s;"></div>
+
+    <main class="w-full max-w-2xl z-10">
+        <div class="text-center mb-10">
+            <h1
+                class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-xen-500 to-blue-500 mb-4 tracking-tight">
+                Xen-BinaAPK
+            </h1>
+            <p class="text-gray-400 text-lg">Platform membina APK terus ke Repository Web anda.</p>
+        </div>
+
+        <div class="glass-panel rounded-2xl p-8 shadow-2xl">
+            <form id="builderForm" class="space-y-6">
+
+                <!-- Target Repo -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">URL / Nama Repository Anda</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-brands fa-github text-gray-500"></i>
+                        </div>
+                        <input type="text" id="target_repo" required placeholder="Cth: username/sistem-tempahan"
+                            class="pl-10 w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-xen-500 focus:border-xen-500 transition-all outline-none placeholder-gray-500">
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Format: <span class="font-mono">pemilik/repo</span> tanpa URL
+                        penuh Github.</p>
+                </div>
+
+                <!-- GitHub Token -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">GitHub Access Token (PAT)</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-key text-gray-500"></i>
+                        </div>
+                        <input type="password" id="user_token" required placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxx"
+                            class="pl-10 w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-xen-500 focus:border-xen-500 transition-all outline-none placeholder-gray-500">
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Diperlukan untuk baca kod dan hasilkan Release. (Pilih hak:
+                        repo & workflow)</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- App Name -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Nama Aplikasi</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-mobile-screen text-gray-500"></i>
+                            </div>
+                            <input type="text" id="app_name" required placeholder="Cth: Xen Store"
+                                class="pl-10 w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-xen-500 focus:border-xen-500 transition-all outline-none placeholder-gray-500">
+                        </div>
+                    </div>
+
+                    <!-- App ID -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">App ID (Pakej Android)</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-barcode text-gray-500"></i>
+                            </div>
+                            <input type="text" id="app_id" required placeholder="Cth: com.xen.store"
+                                class="pl-10 w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-xen-500 focus:border-xen-500 transition-all outline-none placeholder-gray-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-4">
+                    <button type="submit" id="submitBtn"
+                        class="w-full flex items-center justify-center bg-gradient-to-r from-xen-600 to-xen-500 hover:from-xen-500 hover:to-xen-400 text-white font-bold rounded-lg p-4 shadow-lg shadow-xen-500/30 transition-all transform hover:-translate-y-1">
+                        <i class="fa-solid fa-hammer mr-2"></i> Mulakan Proses Bina APK
+                    </button>
+                </div>
+            </form>
+
+            <!-- Status Alert -->
+            <div id="statusAlert" class="mt-6 hidden rounded-lg p-4 text-sm border">
+                <div class="flex items-start">
+                    <div id="statusIcon" class="mr-3 mt-0.5"></div>
+                    <div id="statusMessage" class="flex-1 font-medium"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-8 text-gray-500 text-sm">
+            <p>&copy; 2026 Dibina oleh Xen-Exl Team. Dikuasakan oleh Capacitor & GitHub Actions.</p>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('builderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btn = document.getElementById('submitBtn');
+            const alertBox = document.getElementById('statusAlert');
+            const icon = document.getElementById('statusIcon');
+            const msg = document.getElementById('statusMessage');
+
+            // Reset UI
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Sedang Memproses...';
+            alertBox.classList.add('hidden');
+            alertBox.className = 'mt-6 rounded-lg p-4 text-sm border'; // reset classes
+
+            const payload = {
+                target_repo: document.getElementById('target_repo').value.trim(),
+                user_token: document.getElementById('user_token').value.trim(),
+                app_name: document.getElementById('app_name').value.trim(),
+                app_id: document.getElementById('app_id').value.trim()
+            };
+
+            try {
+                const response = await fetch('/api/build', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                alertBox.classList.remove('hidden');
+
+                if (response.ok) {
+                    alertBox.classList.add('bg-green-900/50', 'border-green-800', 'text-green-300');
+                    icon.innerHTML = '<i class="fa-solid fa-circle-check text-green-400 text-lg"></i>';
+                    msg.innerHTML = `<strong>Berjaya!</strong> <br/> ${data.message} <br/><br/> <a href="https://github.com/${payload.target_repo}/actions" target="_blank" class="underline hover:text-white">Semak status di GitHub anda &rarr;</a>`;
+                } else {
+                    alertBox.classList.add('bg-red-900/50', 'border-red-800', 'text-red-300');
+                    icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-400 text-lg"></i>';
+                    msg.innerHTML = `<strong>Ralat:</strong> ${data.error || 'Terkompilasi Ralat.'} <br/> <span class="text-xs opacity-75">${data.details || ''}</span>`;
+                }
+
+            } catch (err) {
+                alertBox.classList.remove('hidden');
+                alertBox.classList.add('bg-red-900/50', 'border-red-800', 'text-red-300');
+                icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-400 text-lg"></i>';
+                msg.innerHTML = `<strong>Ralat Rangkaian:</strong> Gagal menghubungi pelayan Vercel. ${err.message}`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-hammer mr-2"></i> Mulakan Proses Bina APK';
+            }
+        });
+    </script>
+</body>
+
+</html>

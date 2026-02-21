@@ -1,36 +1,35 @@
-# Xen-BinaAPK
+# Xen-BinaAPK (Pusat Pembina Web ke APK)
 
-Projek ini menukarkan aplikasi web kepada fail APK (Android) menggunakan **Capacitor** secara automatik menggunakan GitHub Actions.
+Projek ini adalah sebuah sistem pembina (Builder) beasaskan laman web yang menukarkan aplikasi web HTML/JS/CSS anda kepada fail APK (Android) secara automatik menggunakan **Capacitor dan GitHub Actions**.
 
-## Cara Membina (Build) Aplikasi Web ke APK (Secara Automatik)
+Ia direka untuk dihoskan (hosted) di **Vercel**, di mana pengguna boleh memasukkan URL repository mereka di laman web, dan sistem penukaran APK akan berjalan di belakang tabir.
 
-Anda tidak lagi memerlukan Android Studio di komputer anda. Semua proses akan dijalankan secara automatik di pelayan GitHub.
+## Cara Pemasangan (Deploy ke Vercel)
 
-Sila ikuti langkah-langkah mudah di bawah:
+Memandangkan kompilasi Android (Java/Gradle) sangat berat, projek ini menggunakan seni bina *"Central Builder"*. Web di Vercel hanya bertindak sebagai Antaramuka (UI), manakala kerja sebenar dilakukan oleh GitHub Actions di repository ini.
 
-### 1. Kemas Kini Fail Web Anda
-Masukkan atau kemas kini kod HTML/CSS/JS anda ke dalam folder `web/`.
+### 1. Fork Repository Ini
+Sila "Fork" repository `Xen-BinaAPK` ini ke akaun GitHub anda.
 
-### 2. Tolak (Push) Perubahan ke GitHub
-Setelah selesai mengemas kini fail, tolak (commit & push) perubahan tersebut ke repository GitHub:
-```bash
-git add .
-git commit -m "update: fail web terkini"
-git push origin main
-```
+### 2. Dapatkan GitHub PAT (Personal Access Token)
+Untuk membolehkan Vercel menghidupkan (trigger) GitHub Actions secara automatik:
+- Pergi ke **GitHub Settings -> Developer Settings -> Personal access tokens (Tokens (classic))**.
+- Klik **Generate new token (classic)**.
+- Beri kebenaran (scope): `repo` dan `workflow`.
+- Salin token tersebut (contoh: `ghp_xxxxxxxxxxxx`).
 
-### 3. Cipta "Tag" Versi Baharu (Untuk Release Automatik)
-Untuk mencetuskan sistem pembinaan (build) automatik dan menjana fail APK di halaman *Releases*, anda perlu meletakkan tag versi bermula dengan huruf `v` (contoh: `v1.0.0`):
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
+### 3. Deploy ke Vercel
+- Log masuk ke [Vercel](https://vercel.com/) dan tambah projek baharu dari repository GitHub anda yang telah di-"Fork".
+- Sebelum klik **Deploy**, pergi ke bahagian **Environment Variables**.
+- Tambahkan:
+  - Key: `GITHUB_PAT`
+  - Value: *(Tampal token yang disalin tadi)*
+- Klik **Deploy**.
 
-### 4. Muat Turun Fail APK
-- Buka repository GitHub anda di pelayar web (https://github.com/Xen-exl/Xen-BinaAPK).
-- Pergi ke tab **Actions**. Anda boleh melihat proses *build* sedang berjalan.
-- Setelah proses memaparkan tanda semak hijau (Berjaya/Success), pergi ke panel kanan halaman utama repository dan klik pada **Releases**.
-- Fail APK (`app-debug.apk`) sedia untuk dimuat turun dan dipasang pada peranti Android anda!
+## Cara Penggunaan (Selepas Deploy)
 
-> **Cara Alternatif (Manual Trigger):**
-> Anda juga boleh memulakannya secara manual dengan pergi ke tab **Actions** -> pilih **Build and Release Android APK** -> klik **Run workflow**. Fail APK akan dimuat naik sebagai "Artifact" di hujung proses *build* tersebut tanpa berada di halaman Releases.
+1. Buka laman web Vercel anda.
+2. Masukkan URL Repository Web anda (contoh: `username/web-app-saya`).
+3. Masukkan Token GitHub anda (sama seperti token di atas, atau token bacaan pengguna). Token ini digunakan oleh sistem pembina untuk memuat naik fail APK ke bahagian *Releases* repository anda.
+4. Klik **Mulakan Proses Bina APK**.
+5. Proses akan berjalan selama kira-kira 2-3 minit. Sila semak tab **Actions** atau **Releases** di repository web anda untuk memuat turun fail APK!
