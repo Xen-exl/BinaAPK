@@ -79,9 +79,16 @@ jobs:
           TIMESTAMP=$(date +%s)
           TAG_NAME="build-$TIMESTAMP"
           
+          # Bersihkan nama aplikasi untuk membuang jarak (spaces) dan tukar menjadi format yang sah.
+          # Cth: "Xen Store" -> "Xen_Store.apk"
+          APP_FILENAME=$(echo "${{ github.event.inputs.app_name }}" | tr -s ' ' '_' | tr -cd 'A-Za-z0-9_-')
+          
+          # Tukar nama fail APK asal (app-debug.apk)
+          mv android/app/build/outputs/apk/debug/app-debug.apk "android/app/build/outputs/apk/debug/${APP_FILENAME}.apk"
+          
           # We use GitHub CLI (gh) to push to the target repo using the user's PAT.
           gh release create "$TAG_NAME" \
-            android/app/build/outputs/apk/debug/app-debug.apk \
+            "android/app/build/outputs/apk/debug/${APP_FILENAME}.apk" \
             --repo ${{ github.event.inputs.target_repo }} \
             --title "Xen-BinaAPK Build ($TAG_NAME)" \
             --notes "Dihasilkan secara automatik menggunakan sistem Xen-BinaAPK Central Builder."
