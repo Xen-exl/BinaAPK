@@ -32,7 +32,8 @@ jobs:
 
       - name: Fetch User Web Target Repository
         run: |
-          git clone https://${{ github.event.inputs.user_token }}@github.com/${{ github.event.inputs.target_repo }}.git temp_web
+          # Use x-access-token format for safer cloning
+          git clone https://x-access-token:${{ github.event.inputs.user_token }}@github.com/${{ github.event.inputs.target_repo }}.git temp_web
           rm -rf web/*
           cp -R temp_web/* web/
           rm -rf temp_web
