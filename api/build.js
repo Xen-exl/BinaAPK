@@ -9,10 +9,22 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Sila lengkapkan semua medan yang wajib.' });
   }
 
+  // Sanitize the target_repo to make sure it's just 'username/repo' and not a full URL
+  let clean_target_repo = target_repo.trim();
+  if (clean_target_repo.startsWith('http')) {
+    try {
+      const urlObj = new URL(clean_target_repo);
+      // This will convert "https://github.com/user/repo" into "user/repo" (removing the leading slash)
+      clean_target_repo = urlObj.pathname.substring(1).replace(/\.git$/, '');
+    } catch (e) {
+      // If URL parsing fails, let it pass as is, though unlikely
+    }
+  }
+
   // Use the secret Vercel Server token to trigger the workflow on our own central repo.
   // Note: The user token is PASSED to the workflow, not used to authenticate this API call, 
   // because the user token does not have access to trigger workflows on Xen-exl/Xen-BinaAPK.
-  const vercelGithubToken = process.env.GITHUB_PAT; 
+  const vercelGithubToken = process.env.GITHUB_PAT;
 
   if (!vercelGithubToken) {
     return res.status(500).json({ error: 'Pelayan Vercel belum dikonfigurasi dengan GITHUB_PAT rahsia.' });
@@ -29,7 +41,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         ref: 'main',
         inputs: {
-          target_repo,
+          target_repo: clean_target_repo,
           user_token,
           app_name,
           app_id
