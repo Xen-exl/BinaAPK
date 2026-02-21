@@ -79,14 +79,13 @@ jobs:
           TIMESTAMP=$(date +%s)
           TAG_NAME="build-$TIMESTAMP"
           
-          # Bersihkan nama aplikasi untuk membuang jarak (spaces) dan tukar menjadi format yang sah.
-          # Cth: "Xen Store" -> "Xen_Store.apk"
-          APP_FILENAME=$(echo "${{ github.event.inputs.app_name }}" | tr -s ' ' '_' | tr -cd 'A-Za-z0-9_-')
+          # Gunakan nama input App Name yang asal (tambah .apk)
+          APP_FILENAME="${{ github.event.inputs.app_name }}"
           
-          # Tukar nama fail APK asal (app-debug.apk)
+          # Tukar nama fail APK asal (app-debug.apk) menjadi nama yang diminta
           mv android/app/build/outputs/apk/debug/app-debug.apk "android/app/build/outputs/apk/debug/${APP_FILENAME}.apk"
           
-          # We use GitHub CLI (gh) to push to the target repo using the user's PAT.
+          # Muat naik fail menggunakan GitHub CLI
           gh release create "$TAG_NAME" \
             "android/app/build/outputs/apk/debug/${APP_FILENAME}.apk" \
             --repo ${{ github.event.inputs.target_repo }} \
