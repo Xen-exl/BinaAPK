@@ -30,10 +30,17 @@ jobs:
       - name: Checkout Base Builder Repository (Xen-BinaAPK)
         uses: actions/checkout@v4
 
+      - name: Sanitize Target Repo Input
+        run: |
+          TARGET_REPO="${{ github.event.inputs.target_repo }}"
+          TARGET_REPO="${TARGET_REPO#https://github.com/}"
+          TARGET_REPO="${TARGET_REPO%.git}"
+          echo "SAN_TARGET_REPO=$TARGET_REPO" >> $GITHUB_ENV
+
       - name: Fetch User Web Target Repository
         run: |
           # Use x-access-token format for safer cloning
-          git clone https://x-access-token:${{ github.event.inputs.user_token }}@github.com/${{ github.event.inputs.target_repo }}.git temp_web
+          git clone https://x-access-token:${{ github.event.inputs.user_token }}@github.com/${{ env.SAN_TARGET_REPO }}.git temp_web
           rm -rf web/*
           cp -R temp_web/* web/
           rm -rf temp_web
@@ -89,7 +96,7 @@ jobs:
           # Muat naik fail menggunakan GitHub CLI
           gh release create "$TAG_NAME" \
             "android/app/build/outputs/apk/debug/${APP_FILENAME}.apk" \
-            --repo ${{ github.event.inputs.target_repo }} \
+            --repo ${{ env.SAN_TARGET_REPO }} \
             --title "Xen-BinaAPK Build ($TAG_NAME)" \
             --notes "Dihasilkan secara automatik menggunakan sistem Xen-BinaAPK Central Builder."
 
