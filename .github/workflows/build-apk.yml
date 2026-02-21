@@ -1,23 +1,57 @@
-name: Build and Release Android APK
+name: Central APK Builder
 
 on:
-  push:
-    tags:
-      - 'v*' # Trigger build on version tags e.g., v1.0.0
-  workflow_dispatch: # Allow manual trigger from GitHub Actions tab
+  workflow_dispatch:
+    inputs:
+      target_repo:
+        description: 'Target Repository (e.g., username/my-web-app)'
+        required: true
+        type: string
+      user_token:
+        description: 'GitHub Personal Access Token (for read/write to Target Repo)'
+        required: true
+        type: string
+      app_name:
+        description: 'App Name'
+        required: true
+        default: 'Xen App'
+        type: string
+      app_id:
+        description: 'App ID (e.g., com.example.app)'
+        required: true
+        default: 'com.xen.app'
+        type: string
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout Base Builder Repository (Xen-BinaAPK)
         uses: actions/checkout@v4
+
+      - name: Fetch User Web Target Repository
+        run: |
+          git clone https://${{ github.event.inputs.user_token }}@github.com/${{ github.event.inputs.target_repo }}.git temp_web
+          rm -rf web/*
+          cp -R temp_web/* web/
+          rm -rf temp_web
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      - name: Update Capacitor Config
+        run: |
+          node -e "
+            const fs = require('fs');
+            const file = './capacitor.config.json';
+            const config = JSON.parse(fs.readFileSync(file, 'utf8'));
+            config.appName = '${{ github.event.inputs.app_name }}';
+            config.appId = '${{ github.event.inputs.app_id }}';
+            fs.writeFileSync(file, JSON.stringify(config, null, 2));
+          "
 
       - name: Install Dependencies
         run: npm install
@@ -34,20 +68,21 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Build APK
+      - name: Build APK (Assemble Debug)
         working-directory: ./android
         run: ./gradlew assembleDebug
 
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-debug
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Publish Release to User Repository
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.event.inputs.user_token }}
+        run: |
+          TIMESTAMP=$(date +%s)
+          TAG_NAME="build-$TIMESTAMP"
+          
+          # We use GitHub CLI (gh) to push to the target repo using the user's PAT.
+          gh release create "$TAG_NAME" \
+            android/app/build/outputs/apk/debug/app-debug.apk \
+            --repo ${{ github.event.inputs.target_repo }} \
+            --title "Xen-BinaAPK Build ($TAG_NAME)" \
+            --notes "Dihasilkan secara automatik menggunakan sistem Xen-BinaAPK Central Builder."
+
