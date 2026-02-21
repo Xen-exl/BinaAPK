@@ -33,7 +33,9 @@ jobs:
       - name: Sanitize Target Repo Input
         run: |
           TARGET_REPO="${{ github.event.inputs.target_repo }}"
-          TARGET_REPO="${TARGET_REPO#https://github.com/}"
+          # Bersihkan HTTPS/HTTP
+          TARGET_REPO=$(echo "$TARGET_REPO" | sed -e 's/https:\/\/github.com\///g' -e 's/http:\/\/github.com\///g' -e 's/github.com\///g')
+          # Bersihkan .git
           TARGET_REPO="${TARGET_REPO%.git}"
           echo "SAN_TARGET_REPO=$TARGET_REPO" >> $GITHUB_ENV
 
