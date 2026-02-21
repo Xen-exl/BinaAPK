@@ -1,35 +1,38 @@
-# Xen-BinaAPK (Pusat Pembina Web ke APK)
+# Xen-BinaAPK
 
-Projek ini adalah sebuah sistem pembina (Builder) beasaskan laman web yang menukarkan aplikasi web HTML/JS/CSS anda kepada fail APK (Android) secara automatik menggunakan **Capacitor dan GitHub Actions**.
+Selamat datang ke **Xen-BinaAPK**, platform mudah untuk menukarkan aplikasi web HTML/JS/CSS anda kepada fail pemasangan Android (.apk) secara automatik!
 
-Ia direka untuk dihoskan (hosted) di **Vercel**, di mana pengguna boleh memasukkan URL repository mereka di laman web, dan sistem penukaran APK akan berjalan di belakang tabir.
+Anda tidak perlu memuat turun Android Studio atau memahami sistem kod yang rumit. Semuanya dilakukan di atas talian (online) terus ke dalam akaun GitHub anda.
 
-## Cara Pemasangan (Deploy ke Vercel)
+## Cara Menggunakan Xen-BinaAPK
 
-Memandangkan kompilasi Android (Java/Gradle) sangat berat, projek ini menggunakan seni bina *"Central Builder"*. Web di Vercel hanya bertindak sebagai Antaramuka (UI), manakala kerja sebenar dilakukan oleh GitHub Actions di repository ini.
+Untuk membina APK aplikasi web anda, ikuti tiga langkah mudah di bawah.
 
-### 1. Fork Repository Ini
-Sila "Fork" repository `Xen-BinaAPK` ini ke akaun GitHub anda.
+### Langkah 1: Sediakan Repository Web Anda
+Pastikan kod sumber laman web anda (HTML, CSS, JS) telah dimuat naik ke dalam sebuah repository GitHub yang berstatus `Public` atau `Private`.
 
-### 2. Dapatkan GitHub PAT (Personal Access Token)
-Untuk membolehkan Vercel menghidupkan (trigger) GitHub Actions secara automatik:
-- Pergi ke **GitHub Settings -> Developer Settings -> Personal access tokens (Tokens (classic))**.
-- Klik **Generate new token (classic)**.
-- Beri kebenaran (scope): `repo` dan `workflow`.
-- Salin token tersebut (contoh: `ghp_xxxxxxxxxxxx`).
+### Langkah 2: Dapatkan GitHub Access Token Anda
+Sistem The Xen-BinaAPK memerlukan kebenaran sementara untuk membaca fail web anda dan memuat naik fail APK yang telah siap ke repository anda.
+1. Log masuk ke akaun GitHub anda.
+2. Pergi ke **Settings** > **Developer settings** > **Personal access tokens** > **Tokens (classic)**.
+   *(Atau klik pautan pantas ini: [Semat Token Baru](https://github.com/settings/tokens/new))*
+3. Letakkan apa-apa nama pada ruang **Note** (cth: `BinaAPK`).
+4. Pada bahagian **Select scopes**, tandakan (tick) ruangan berikut:
+   - `repo` (Full control of private repositories)
+   - `workflow` (Update GitHub Action workflows)
+5. Skrol ke bawah dan klik **Generate token**.
+6. **Salin token tersebut (bermula dengan `ghp_...`).** Simpan token ini kerana ia tidak akan dipaparkan lagi.
 
-### 3. Deploy ke Vercel
-- Log masuk ke [Vercel](https://vercel.com/) dan tambah projek baharu dari repository GitHub anda yang telah di-"Fork".
-- Sebelum klik **Deploy**, pergi ke bahagian **Environment Variables**.
-- Tambahkan:
-  - Key: `GITHUB_PAT`
-  - Value: *(Tampal token yang disalin tadi)*
-- Klik **Deploy**.
+### Langkah 3: Mula Membina APK!
+1. Buka laman web Xen-BinaAPK kami.
+2. Masukkan maklumat berikut dalam borang yang disediakan:
+   - **URL / Nama Repository**: Letakkan format `username/repo-anda` (cth: `Xen-exl/laman-web-syarikat`).
+   - **GitHub Access Token**: Tampal token `ghp_...` yang anda salin pada *Langkah 2*.
+   - **Nama Aplikasi**: Nama yang akan terpapar di skrin telefon anda (cth: `My Kedai`).
+   - **App ID (Pakej)**: ID unik untuk aplikasi anda (cth: `com.mykedai.app`).
+3. Klik **Mulakan Proses Bina APK**.
 
-## Cara Penggunaan (Selepas Deploy)
+## Tempoh Menunggu & Memuat Turun
+Proses pembinaan APK akan mengambil masa sekitar **2 hingga 4 minit**. Anda boleh menyemak perkembangannya di tab **Actions** pada halaman repository GitHub anda sendiri.
 
-1. Buka laman web Vercel anda.
-2. Masukkan URL Repository Web anda (contoh: `username/web-app-saya`).
-3. Masukkan Token GitHub anda (sama seperti token di atas, atau token bacaan pengguna). Token ini digunakan oleh sistem pembina untuk memuat naik fail APK ke bahagian *Releases* repository anda.
-4. Klik **Mulakan Proses Bina APK**.
-5. Proses akan berjalan selama kira-kira 2-3 minit. Sila semak tab **Actions** atau **Releases** di repository web anda untuk memuat turun fail APK!
+Setelah selesai, fail `app-debug.apk` akan berada di bahagian **Releases** di repository GitHub anda sedia untuk dimuat turun ke dalam telefon pintar Android!
