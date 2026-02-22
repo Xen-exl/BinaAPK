@@ -140,9 +140,11 @@ jobs:
         working-directory: ./builder
         run: npm install
 
-      - name: Sync Capacitor Android
+      - name: Generate Android Project
         working-directory: ./builder
-        run: npx cap sync android
+        run: |
+          rm -rf android
+          npx cap add android
 
       - name: Setup Java JDK
         uses: actions/setup-java@v4
