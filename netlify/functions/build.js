@@ -28,7 +28,7 @@ export default async function handler(req, context) {
     return new Response(JSON.stringify({ error: 'Invalid JSON request' }), { status: 400 });
   }
 
-  const { target_repo, user_token, app_name, app_id } = bodyData;
+  const { target_repo, user_token, app_name, app_id, app_icon_base64 } = bodyData;
 
   if (!target_repo || !user_token || !app_name || !app_id) {
     const errObj = { error: 'Sila lengkapkan semua medan yang wajib.' };
@@ -76,6 +76,18 @@ export default async function handler(req, context) {
     if (getRes.ok) {
       const getJson = await getRes.json();
       fileSha = getJson.sha;
+    }
+
+    let iconStep = '';
+    if (app_icon_base64) {
+      iconStep = `
+      - name: Generate App Icons
+        working-directory: ./builder
+        run: |
+          echo "${app_icon_base64}" | base64 -d > icon.png
+          npm install @capacitor/assets --no-save
+          npx capacitor-assets generate --android --assetPath .
+`;
     }
 
     const workflowContent = `name: Xen-BinaAPK Builder
@@ -145,12 +157,12 @@ jobs:
         run: |
           rm -rf android
           npx cap add android
-
+${iconStep}
       - name: Setup Java JDK
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '21'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3

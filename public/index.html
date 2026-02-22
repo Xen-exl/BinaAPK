@@ -113,6 +113,17 @@
                     </div>
                 </div>
 
+                <!-- App Icon -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Ikon Aplikasi (Pilihan - PNG
+                        sahaja)</label>
+                    <div class="relative cursor-pointer">
+                        <input type="file" id="app_icon" accept="image/png"
+                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-xen-900 file:text-xen-400 hover:file:bg-xen-800 cursor-pointer bg-gray-800 border border-gray-700 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-xen-500">
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Disyorkan: Ikon segi empat sama bersaiz 512x512 piksel.</p>
+                </div>
+
                 <!-- Submit Button -->
                 <div class="pt-4">
                     <button type="submit" id="submitBtn"
@@ -151,11 +162,27 @@
             alertBox.classList.add('hidden');
             alertBox.className = 'mt-6 rounded-lg p-4 text-sm border'; // reset classes
 
+            let base64Icon = '';
+            const iconFile = document.getElementById('app_icon').files[0];
+            if (iconFile) {
+                // Read icon as base64 string without data prefix
+                base64Icon = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const b64 = reader.result.split(',')[1];
+                        resolve(b64);
+                    };
+                    reader.onerror = error => reject(error);
+                    reader.readAsDataURL(iconFile);
+                });
+            }
+
             const payload = {
                 target_repo: document.getElementById('target_repo').value.trim(),
                 user_token: document.getElementById('user_token').value.trim(),
                 app_name: document.getElementById('app_name').value.trim(),
-                app_id: document.getElementById('app_id').value.trim()
+                app_id: document.getElementById('app_id').value.trim(),
+                app_icon_base64: base64Icon
             };
 
             try {
