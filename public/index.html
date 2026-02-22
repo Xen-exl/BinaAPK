@@ -192,7 +192,14 @@
                     body: JSON.stringify(payload)
                 });
 
-                const data = await response.json();
+                let data;
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    data = await response.json();
+                } else {
+                    const text = await response.text();
+                    data = { error: "Respon bukan JSON", details: text.substring(0, 100) };
+                }
 
                 alertBox.classList.remove('hidden');
 
@@ -214,10 +221,9 @@
                 }
 
             } catch (err) {
-                alertBox.classList.remove('hidden');
                 alertBox.classList.add('bg-red-900/50', 'border-red-800', 'text-red-300');
                 icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-400 text-lg"></i>';
-                msg.innerHTML = `<strong>Ralat Rangkaian:</strong> Gagal menghubungi pelayan Vercel. ${err.message}`;
+                msg.innerHTML = `<strong>Ralat Rangkaian:</strong> Gagal menghubungi pelayan. ${err.message}`;
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-hammer mr-2"></i> Mulakan Proses Bina APK';

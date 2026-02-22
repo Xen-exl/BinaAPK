@@ -1,16 +1,24 @@
 export default async function handler(req, context) {
   // If we're on standard Vercel Node.js express-like req/res:
-  const isExpressLike = typeof req.json !== 'function' && typeof res !== 'undefined';
+  const isExpressLike = typeof req.json !== 'function' && typeof arguments[1] !== 'undefined'; // Changed `res` to `arguments[1]` for consistency
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS'
+  };
 
   // Handle preflight CORS if needed
   if (req.method === 'OPTIONS') {
-    if (isExpressLike) return arguments[1].status(200).end();
-    return new Response(null, { status: 200 });
+    if (isExpressLike) return arguments[1].status(200).set(corsHeaders).end();
+    return new Response(null, { status: 200, headers: corsHeaders });
   }
 
   if (req.method !== 'POST') {
-    if (isExpressLike) return arguments[1].status(405).json({ error: 'Method Not Allowed' });
-    return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405 });
+    if (isExpressLike) return arguments[1].status(405).set(corsHeaders).json({ error: 'Method Not Allowed' });
+    return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
+      status: 405,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
   }
 
   let bodyData;
@@ -24,16 +32,22 @@ export default async function handler(req, context) {
       if (typeof bodyData === 'string') bodyData = JSON.parse(bodyData);
     }
   } catch (err) {
-    if (isExpressLike) return arguments[1].status(400).json({ error: 'Invalid JSON request' });
-    return new Response(JSON.stringify({ error: 'Invalid JSON request' }), { status: 400 });
+    if (isExpressLike) return arguments[1].status(400).set(corsHeaders).json({ error: 'Invalid JSON request' });
+    return new Response(JSON.stringify({ error: 'Invalid JSON request' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
   }
 
   const { target_repo, user_token, app_name, app_id, app_icon_base64 } = bodyData;
 
   if (!target_repo || !user_token || !app_name || !app_id) {
     const errObj = { error: 'Sila lengkapkan semua medan yang wajib.' };
-    if (isExpressLike) return arguments[1].status(400).json(errObj);
-    return new Response(JSON.stringify(errObj), { status: 400 });
+    if (isExpressLike) return arguments[1].status(400).set(corsHeaders).json(errObj);
+    return new Response(JSON.stringify(errObj), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
   }
 
   // Sanitize the target_repo to make sure it's just 'username/repo' and not a full URL
@@ -59,8 +73,11 @@ export default async function handler(req, context) {
 
     if (!repoRes.ok) {
       const errObj = { error: 'Gagal mengakses repository. Sila pastikan URL dan Token PAT anda sah dan mempunyai hak cipta "repo" & "workflow".' };
-      if (isExpressLike) return arguments[1].status(repoRes.status).json(errObj);
-      return new Response(JSON.stringify(errObj), { status: repoRes.status });
+      if (isExpressLike) return arguments[1].status(repoRes.status).set(corsHeaders).json(errObj);
+      return new Response(JSON.stringify(errObj), {
+        status: repoRes.status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
     const repoData = await repoRes.json();
     const defaultBranch = repoData.default_branch;
@@ -268,8 +285,11 @@ ${iconStep}
     if (!putRes.ok) {
       const errText = await putRes.text();
       const errObj = { error: 'Gagal memuat naik workflow ke repo anda.', details: errText };
-      if (isExpressLike) return arguments[1].status(putRes.status).json(errObj);
-      return new Response(JSON.stringify(errObj), { status: putRes.status });
+      if (isExpressLike) return arguments[1].status(putRes.status).set(corsHeaders).json(errObj);
+      return new Response(JSON.stringify(errObj), {
+        status: putRes.status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
 
     // Give GitHub API 1.5 seconds to propagate the new workflow file before dispatching
@@ -296,13 +316,19 @@ ${iconStep}
       const errorText = await dispatchRes.text();
       console.error('GitHub API Error Dispatch:', errorText);
       const errObj = { error: 'Gagal mencetuskan build di repo anda (Dispatcher Error).', details: errorText };
-      if (isExpressLike) return arguments[1].status(dispatchRes.status).json(errObj);
-      return new Response(JSON.stringify(errObj), { status: dispatchRes.status });
+      if (isExpressLike) return arguments[1].status(dispatchRes.status).set(corsHeaders).json(errObj);
+      return new Response(JSON.stringify(errObj), {
+        status: dispatchRes.status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
 
     const successObj = { success: true, message: 'Proses Build telah dimulakan pada Repo anda! Sila semak tab Actions / Releases di repository anda sebentar lagi.' };
-    if (isExpressLike) return arguments[1].status(200).json(successObj);
-    return new Response(JSON.stringify(successObj), { status: 200 });
+    if (isExpressLike) return arguments[1].status(200).set(corsHeaders).json(successObj);
+    return new Response(JSON.stringify(successObj), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
 
   } catch (error) {
     console.error('Fetch Error:', error);
