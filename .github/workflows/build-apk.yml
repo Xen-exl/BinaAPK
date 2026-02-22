@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Base Builder Repository (Xen-BinaAPK)
+      - name: Checkout Base Builder Repository (BinaAPK)
         uses: actions/checkout@v4
 
       - name: Sanitize Target Repo Input
@@ -101,6 +101,6 @@ jobs:
           gh release create "$TAG_NAME" \
             "android/app/build/outputs/apk/debug/${APP_FILENAME}.apk" \
             --repo "$SAN_TARGET_REPO" \
-            --title "Xen-BinaAPK Build ($TAG_NAME)" \
-            --notes "Dihasilkan secara automatik menggunakan sistem Xen-BinaAPK Central Builder."
+            --title "BinaAPK Build ($TAG_NAME)" \
+            --notes "Dihasilkan secara automatik menggunakan sistem BinaAPK Central Builder."
 

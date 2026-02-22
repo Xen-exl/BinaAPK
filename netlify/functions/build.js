@@ -106,7 +106,7 @@ export default async function handler(req, context) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          message: 'Update app icon for Xen-BinaAPK',
+          message: 'Update app icon for BinaAPK',
           content: app_icon_base64,
           sha: iconSha
         })
@@ -124,7 +124,7 @@ export default async function handler(req, context) {
 `;
     }
 
-    const workflowContent = `name: Xen-BinaAPK Builder
+    const workflowContent = `name: BinaAPK Builder
 
 on:
   workflow_dispatch:
@@ -155,7 +155,7 @@ jobs:
       - name: Checkout Base Builder Repository
         uses: actions/checkout@v4
         with:
-          repository: Xen-exl/Xen-BinaAPK
+          repository: Xen-exl/BinaAPK
           path: builder
 
       - name: Prepare Web Assets
@@ -217,7 +217,7 @@ ${iconStep}
           # Move APK
           mv ../builder/android/app/build/outputs/apk/debug/app-debug.apk "./\${APP_FILENAME}.apk"
           
-          gh release create "$TAG_NAME" "./\${APP_FILENAME}.apk" --title "Xen-BinaAPK Build ($TAG_NAME)" --notes "Dihasilkan secara automatik menggunakan sistem Xen-BinaAPK."
+          gh release create "$TAG_NAME" "./\${APP_FILENAME}.apk" --title "BinaAPK Build ($TAG_NAME)" --notes "Dihasilkan secara automatik menggunakan sistem BinaAPK."
 `;
 
     const base64Content = typeof Buffer !== 'undefined'
@@ -233,7 +233,7 @@ ${iconStep}
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        message: 'Set up Xen-BinaAPK workflow automatik',
+        message: 'Set up BinaAPK workflow automatik',
         content: base64Content,
         sha: fileSha
       })

@@ -1,10 +1,10 @@
-# Xen-BinaAPK 
+# BinaAPK 
 
-Selamat datang ke **Xen-BinaAPK**, platform mudah untuk menukarkan aplikasi web HTML/JS/CSS anda kepada fail pemasangan Android (.apk) secara automatik!
+Selamat datang ke **BinaAPK**, platform mudah untuk menukarkan aplikasi web HTML/JS/CSS anda kepada fail pemasangan Android (.apk) secara automatik!
 
 Anda tidak perlu memuat turun Android Studio atau memahami sistem kod yang rumit. Semuanya dilakukan di atas talian (online) terus ke dalam akaun GitHub anda.
 
-## Cara Menggunakan Xen-BinaAPK
+## Cara Menggunakan BinaAPK
 
 Untuk membina APK aplikasi web anda, ikuti tiga langkah mudah di bawah.
 
@@ -12,7 +12,7 @@ Untuk membina APK aplikasi web anda, ikuti tiga langkah mudah di bawah.
 Pastikan kod sumber laman web anda (HTML, CSS, JS) telah dimuat naik ke dalam sebuah repository GitHub yang berstatus `Public` atau `Private`.
 
 ### Langkah 2: Dapatkan GitHub Access Token Anda
-Sistem The Xen-BinaAPK memerlukan kebenaran sementara untuk membaca fail web anda dan memuat naik fail APK yang telah siap ke repository anda.
+Sistem The BinaAPK memerlukan kebenaran sementara untuk membaca fail web anda dan memuat naik fail APK yang telah siap ke repository anda.
 1. Log masuk ke akaun GitHub anda.
 2. Pergi ke **Settings** > **Developer settings** > **Personal access tokens** > **Tokens (classic)**.
    *(Atau klik pautan pantas ini: [Semat Token Baru](https://github.com/settings/tokens/new))*
@@ -24,7 +24,7 @@ Sistem The Xen-BinaAPK memerlukan kebenaran sementara untuk membaca fail web and
 6. **Salin token tersebut (bermula dengan `ghp_...`).** Simpan token ini kerana ia tidak akan dipaparkan lagi.
 
 ### Langkah 3: Mula Membina APK!
-1. Buka laman web Xen-BinaAPK kami.
+1. Buka laman web BinaAPK kami.
 2. Masukkan maklumat berikut dalam borang yang disediakan:
    - **URL / Nama Repository**: Letakkan format `username/repo-anda` (cth: `Xen-exl/laman-web-syarikat`).
    - **GitHub Access Token**: Tampal token `ghp_...` yang anda salin pada *Langkah 2*.
