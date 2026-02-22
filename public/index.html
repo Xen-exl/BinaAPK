@@ -199,7 +199,13 @@
                 if (response.ok) {
                     alertBox.classList.add('bg-green-900/50', 'border-green-800', 'text-green-300');
                     icon.innerHTML = '<i class="fa-solid fa-circle-check text-green-400 text-lg"></i>';
-                    msg.innerHTML = `<strong>Berjaya!</strong> <br/> ${data.message} <br/><br/> <a href="https://github.com/${payload.target_repo}/actions" target="_blank" class="underline hover:text-white">Semak status di GitHub anda &rarr;</a>`;
+                    msg.innerHTML = `
+                        <strong>Berjaya!</strong><br/> 
+                        <div class="mt-2 text-sm text-green-200/90 leading-relaxed max-h-32 overflow-y-auto pr-2 custom-scrollbar">
+                            Proses pembinaan (Build) fail APK untuk aplikasi anda telah dimulakan secara automatik pada Repositori GitHub anda. Sila buka Repository anda sekarang dan pergi ke tab <b>"Actions"</b> untuk melihat proses tersebut.<br/><br/>
+                            Setelah proses selesai dengan tanda tik hijau, anda boleh memuat turun fail .apk anda yang telah siap di bahagian <b>"Releases"</b> pada halaman utama repository anda.
+                        </div>
+                    `;
                 } else {
                     alertBox.classList.add('bg-red-900/50', 'border-red-800', 'text-red-300');
                     icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-400 text-lg"></i>';
