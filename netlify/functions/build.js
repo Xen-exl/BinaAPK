@@ -163,23 +163,32 @@ jobs:
           mkdir -p builder/web
           rm -rf builder/web/*
           
+          echo "Checking user_repo structure:"
+          ls -F user_repo/
+          
           # Find the directory containing index.html in the user repo
-          WEB_DIR=""
-          # Check common build output directories first, then root
+          # We check common build output directories first, then root
+          WEB_SOURCE_DIR=""
           for dir in "out" "dist" "build" "public" "."; do
             if [ -f "user_repo/$dir/index.html" ]; then
-              WEB_DIR="user_repo/$dir"
+              WEB_SOURCE_DIR="user_repo/$dir"
+              echo "Found index.html in $WEB_SOURCE_DIR"
               break
             fi
           done
           
-          if [ -z "$WEB_DIR" ]; then
-            echo "Error: Could not find index.html in the repository root or common build output directories (out, dist, build, public)."
+          if [ -z "$WEB_SOURCE_DIR" ]; then
+            echo "Error: Could not find index.html in user_repo root or common build directories (out, dist, build, public)."
+            echo "Current user_repo structure:"
+            find user_repo -maxdepth 2
             exit 1
           fi
           
-          echo "Found index.html in $WEB_DIR. Copying web assets..."
-          rsync -av --exclude='.git' --exclude='.github' "$WEB_DIR/" builder/web/
+          echo "Copying web assets from $WEB_SOURCE_DIR to builder/web/..."
+          rsync -av --exclude='.git' --exclude='.github' "$WEB_SOURCE_DIR/" builder/web/
+          
+          echo "Contents of builder/web/:"
+          ls -F builder/web/
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -195,6 +204,7 @@ jobs:
             const config = JSON.parse(fs.readFileSync(file, 'utf8'));
             config.appName = '\${{ github.event.inputs.app_name }}';
             config.appId = '\${{ github.event.inputs.app_id }}';
+            config.webDir = 'web';
             fs.writeFileSync(file, JSON.stringify(config, null, 2));
           "
 
