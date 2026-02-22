@@ -36,8 +36,33 @@ jobs:
         run: |
           mkdir -p builder/web
           rm -rf builder/web/*
-          # Copy user web app strictly to capacitor web directory
-          rsync -av --exclude='.git' --exclude='.github' user_repo/ builder/web/
+          
+          echo "Checking user_repo structure:"
+          ls -F user_repo/
+          
+          # Find the directory containing index.html in the user repo
+          # We check common build output directories first, then root
+          WEB_SOURCE_DIR=""
+          for dir in "out" "dist" "build" "public" "."; do
+            if [ -f "user_repo/$dir/index.html" ]; then
+              WEB_SOURCE_DIR="user_repo/$dir"
+              echo "Found index.html in $WEB_SOURCE_DIR"
+              break
+            fi
+          done
+          
+          if [ -z "$WEB_SOURCE_DIR" ]; then
+            echo "Error: Could not find index.html in user_repo root or common build directories (out, dist, build, public)."
+            echo "Current user_repo structure:"
+            find user_repo -maxdepth 2
+            exit 1
+          fi
+          
+          echo "Copying web assets from $WEB_SOURCE_DIR to builder/web/..."
+          rsync -av --exclude='.git' --exclude='.github' "$WEB_SOURCE_DIR/" builder/web/
+          
+          echo "Contents of builder/web/:"
+          ls -F builder/web/
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -53,8 +78,18 @@ jobs:
             const config = JSON.parse(fs.readFileSync(file, 'utf8'));
             config.appName = '${{ github.event.inputs.app_name }}';
             config.appId = '${{ github.event.inputs.app_id }}';
+            config.webDir = 'web';
             fs.writeFileSync(file, JSON.stringify(config, null, 2));
           "
+
+      - name: Generate App Icons
+        working-directory: ./builder
+        run: |
+          if [ -f "../user_repo/android-icon.png" ]; then
+            cp ../user_repo/android-icon.png ./icon.png
+            npm install @capacitor/assets --no-save
+            npx capacitor-assets generate --android --assetPath .
+          fi
 
       - name: Install Dependencies
         working-directory: ./builder
@@ -65,15 +100,6 @@ jobs:
         run: |
           rm -rf android
           npx cap add android
-
-      - name: Generate App Icons
-        working-directory: ./builder
-        run: |
-          if [ -f "../user_repo/android-icon.png" ]; then
-            cp ../user_repo/android-icon.png ./icon.png
-            npm install @capacitor/assets --no-save
-            npx capacitor-assets generate --android --assetPath .
-          fi
 
       - name: Setup Java JDK
         uses: actions/setup-java@v4
@@ -86,7 +112,9 @@ jobs:
 
       - name: Build APK (Assemble Debug)
         working-directory: ./builder/android
-        run: ./gradlew assembleDebug
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
       - name: Publish Release to User Repository
         working-directory: ./user_repo
