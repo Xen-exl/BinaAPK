@@ -78,15 +78,49 @@ export default async function handler(req, context) {
       fileSha = getJson.sha;
     }
 
+    // 3. (Optional) Upload Icon if provided
     let iconStep = '';
     if (app_icon_base64) {
+      const iconPath = 'android-icon.png';
+      const iconUrl = `https://api.github.com/repos/${clean_target_repo}/contents/${iconPath}`;
+
+      let iconSha;
+      try {
+        const iconRes = await fetch(iconUrl, {
+          headers: {
+            'Authorization': `Bearer ${user_token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+        if (iconRes.ok) {
+          const iconJson = await iconRes.json();
+          iconSha = iconJson.sha;
+        }
+      } catch (e) { }
+
+      await fetch(iconUrl, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${user_token}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: 'Update app icon for Xen-BinaAPK',
+          content: app_icon_base64,
+          sha: iconSha
+        })
+      });
+
       iconStep = `
       - name: Generate App Icons
         working-directory: ./builder
         run: |
-          echo "${app_icon_base64}" | base64 -d > icon.png
-          npm install @capacitor/assets --no-save
-          npx capacitor-assets generate --android --assetPath .
+          if [ -f "../user_repo/android-icon.png" ]; then
+            cp ../user_repo/android-icon.png ./icon.png
+            npm install @capacitor/assets --no-save
+            npx capacitor-assets generate --android --assetPath .
+          fi
 `;
     }
 
