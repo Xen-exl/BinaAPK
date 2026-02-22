@@ -1,4 +1,4 @@
-name: Xen-BinaAPK Builder
+name: BinaAPK Builder
 
 on:
   workflow_dispatch:
@@ -29,7 +29,7 @@ jobs:
       - name: Checkout Base Builder Repository
         uses: actions/checkout@v4
         with:
-          repository: Xen-exl/Xen-BinaAPK
+          repository: Xen-exl/BinaAPK
           path: builder
 
       - name: Prepare Web Assets
@@ -100,4 +100,4 @@ jobs:
           # Move APK
           mv ../builder/android/app/build/outputs/apk/debug/app-debug.apk "./${APP_FILENAME}.apk"
           
-          gh release create "$TAG_NAME" "./${APP_FILENAME}.apk" --title "Xen-BinaAPK Build ($TAG_NAME)" --notes "Dihasilkan secara automatik menggunakan sistem Xen-BinaAPK."
+          gh release create "$TAG_NAME" "./${APP_FILENAME}.apk" --title "BinaAPK Build ($TAG_NAME)" --notes "Dihasilkan secara automatik menggunakan sistem BinaAPK."
