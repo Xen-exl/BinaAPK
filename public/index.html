@@ -201,9 +201,10 @@
                     icon.innerHTML = '<i class="fa-solid fa-circle-check text-green-400 text-lg"></i>';
                     msg.innerHTML = `
                         <strong>Berjaya!</strong><br/> 
-                        <div class="mt-2 text-sm text-green-200/90 leading-relaxed max-h-32 overflow-y-auto pr-2 custom-scrollbar">
-                            Proses pembinaan (Build) fail APK untuk aplikasi anda telah dimulakan secara automatik pada Repositori GitHub anda. Sila buka Repository anda sekarang dan pergi ke tab <b>"Actions"</b> untuk melihat proses tersebut.<br/><br/>
-                            Setelah proses selesai dengan tanda tik hijau, anda boleh memuat turun fail .apk anda yang telah siap di bahagian <b>"Releases"</b> pada halaman utama repository anda.
+                        <div class="mt-2 text-sm text-green-200/90 leading-relaxed max-h-40 overflow-y-auto pr-2" style="scrollbar-width: thin; scrollbar-color: #4ade80 transparent;">
+                            Proses pembinaan (Build) fail APK untuk aplikasi anda telah dimulakan secara automatik pada Repositori GitHub anda.<br/><br/>
+                            Sila buka Repository anda sekarang dan pergi ke tab <b>"Actions"</b> untuk melihat proses pembinaan tersebut berlangsung secara nyata (real-time).<br/><br/>
+                            Setelah proses selesai dengan tanda tik hijau di Actions, anda boleh memuat turun fail <b>.apk</b> anda yang telah siap di bahagian <b>"Releases"</b> pada halaman utama repository terbabit.
                         </div>
                     `;
                 } else {
