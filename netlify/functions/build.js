@@ -162,8 +162,24 @@ jobs:
         run: |
           mkdir -p builder/web
           rm -rf builder/web/*
-          # Copy user web app strictly to capacitor web directory
-          rsync -av --exclude='.git' --exclude='.github' user_repo/ builder/web/
+          
+          # Find the directory containing index.html in the user repo
+          WEB_DIR=""
+          # Check common build output directories first, then root
+          for dir in "out" "dist" "build" "public" "."; do
+            if [ -f "user_repo/$dir/index.html" ]; then
+              WEB_DIR="user_repo/$dir"
+              break
+            fi
+          done
+          
+          if [ -z "$WEB_DIR" ]; then
+            echo "Error: Could not find index.html in the repository root or common build output directories (out, dist, build, public)."
+            exit 1
+          fi
+          
+          echo "Found index.html in $WEB_DIR. Copying web assets..."
+          rsync -av --exclude='.git' --exclude='.github' "$WEB_DIR/" builder/web/
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
