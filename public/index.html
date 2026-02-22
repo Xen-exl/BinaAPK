@@ -186,7 +186,9 @@
             };
 
             try {
-                const response = await fetch('https://binaapk-byxen.netlify.app/api/build', {
+                // Gunakan URL Vercel anda di sini jika ingin simpan sebagai APK
+                // Contoh: https://binaapk.vercel.app/api/build
+                const response = await fetch('/api/build', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -223,7 +225,7 @@
             } catch (err) {
                 alertBox.classList.add('bg-red-900/50', 'border-red-800', 'text-red-300');
                 icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-400 text-lg"></i>';
-                msg.innerHTML = `<strong>Ralat Rangkaian:</strong> Gagal menghubungi pelayan. ${err.message}`;
+                msg.innerHTML = `<strong>Ralat Rangkaian:</strong> Gagal menghubungi pelayan Vercel. ${err.message}`;
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-hammer mr-2"></i> Mulakan Proses Bina APK';
