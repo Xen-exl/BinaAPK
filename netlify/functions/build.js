@@ -1,16 +1,31 @@
 export default async function handler(req, context) {
-  // If we're on standard Vercel Node.js express-like req/res:
-  const isExpressLike = typeof req.json !== 'function' && typeof res !== 'undefined';
+  const isExpressLike = typeof req.json !== 'function' && typeof arguments[1] !== 'undefined';
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS'
+  };
 
   // Handle preflight CORS if needed
   if (req.method === 'OPTIONS') {
-    if (isExpressLike) return arguments[1].status(200).end();
-    return new Response(null, { status: 200 });
+    if (isExpressLike) {
+      const res = arguments[1];
+      Object.entries(corsHeaders).forEach(([k, v]) => res.setHeader(k, v));
+      return res.status(200).end();
+    }
+    return new Response(null, { status: 200, headers: corsHeaders });
   }
 
   if (req.method !== 'POST') {
-    if (isExpressLike) return arguments[1].status(405).json({ error: 'Method Not Allowed' });
-    return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405 });
+    if (isExpressLike) {
+      const res = arguments[1];
+      Object.entries(corsHeaders).forEach(([k, v]) => res.setHeader(k, v));
+      return res.status(405).json({ error: 'Method Not Allowed' });
+    }
+    return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
+      status: 405,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
   }
 
   let bodyData;
@@ -24,16 +39,30 @@ export default async function handler(req, context) {
       if (typeof bodyData === 'string') bodyData = JSON.parse(bodyData);
     }
   } catch (err) {
-    if (isExpressLike) return arguments[1].status(400).json({ error: 'Invalid JSON request' });
-    return new Response(JSON.stringify({ error: 'Invalid JSON request' }), { status: 400 });
+    if (isExpressLike) {
+      const res = arguments[1];
+      Object.entries(corsHeaders).forEach(([k, v]) => res.setHeader(k, v));
+      return res.status(400).json({ error: 'Invalid JSON request' });
+    }
+    return new Response(JSON.stringify({ error: 'Invalid JSON request' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
   }
 
   const { target_repo, user_token, app_name, app_id, app_icon_base64 } = bodyData;
 
   if (!target_repo || !user_token || !app_name || !app_id) {
     const errObj = { error: 'Sila lengkapkan semua medan yang wajib.' };
-    if (isExpressLike) return arguments[1].status(400).json(errObj);
-    return new Response(JSON.stringify(errObj), { status: 400 });
+    if (isExpressLike) {
+      const res = arguments[1];
+      Object.entries(corsHeaders).forEach(([k, v]) => res.setHeader(k, v));
+      return res.status(400).json(errObj);
+    }
+    return new Response(JSON.stringify(errObj), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
   }
 
   // Sanitize the target_repo to make sure it's just 'username/repo' and not a full URL
@@ -45,10 +74,10 @@ export default async function handler(req, context) {
     } catch (e) { }
   }
 
-  const workflowPath = '.github/workflows/xen-binaapk-build.yml';
-  const fileUrl = `https://api.github.com/repos/${clean_target_repo}/contents/${workflowPath}`;
-
   try {
+    const workflowPath = '.github/workflows/xen-binaapk-build.yml';
+    const fileUrl = `https://api.github.com/repos/${clean_target_repo}/contents/${workflowPath}`;
+
     // 1. Get default branch of target_repo
     const repoRes = await fetch(`https://api.github.com/repos/${clean_target_repo}`, {
       headers: {
@@ -59,8 +88,15 @@ export default async function handler(req, context) {
 
     if (!repoRes.ok) {
       const errObj = { error: 'Gagal mengakses repository. Sila pastikan URL dan Token PAT anda sah dan mempunyai hak cipta "repo" & "workflow".' };
-      if (isExpressLike) return arguments[1].status(repoRes.status).json(errObj);
-      return new Response(JSON.stringify(errObj), { status: repoRes.status });
+      if (isExpressLike) {
+        const res = arguments[1];
+        Object.entries(corsHeaders).forEach(([k, v]) => res.setHeader(k, v));
+        return res.status(repoRes.status).json(errObj);
+      }
+      return new Response(JSON.stringify(errObj), {
+        status: repoRes.status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
     const repoData = await repoRes.json();
     const defaultBranch = repoData.default_branch;
@@ -107,8 +143,9 @@ export default async function handler(req, context) {
         },
         body: JSON.stringify({
           message: 'Update app icon for BinaAPK',
-          content: app_icon_base64,
-          sha: iconSha
+          content: app_icon_base64.split(',')[1] || app_icon_base64,
+          sha: iconSha,
+          branch: defaultBranch
         })
       });
 
@@ -207,7 +244,7 @@ jobs:
             config.webDir = 'web';
             fs.writeFileSync(file, JSON.stringify(config, null, 2));
           "
-
+` + iconStep + `
       - name: Install Dependencies
         working-directory: ./builder
         run: npm install
@@ -217,7 +254,7 @@ jobs:
         run: |
           rm -rf android
           npx cap add android
-${iconStep}
+
       - name: Setup Java JDK
         uses: actions/setup-java@v4
         with:
@@ -229,7 +266,9 @@ ${iconStep}
 
       - name: Build APK (Assemble Debug)
         working-directory: ./builder/android
-        run: ./gradlew assembleDebug
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
       - name: Publish Release to User Repository
         working-directory: ./user_repo
@@ -261,15 +300,23 @@ ${iconStep}
       body: JSON.stringify({
         message: 'Set up BinaAPK workflow automatik',
         content: base64Content,
-        sha: fileSha
+        sha: fileSha,
+        branch: defaultBranch
       })
     });
 
     if (!putRes.ok) {
       const errText = await putRes.text();
       const errObj = { error: 'Gagal memuat naik workflow ke repo anda.', details: errText };
-      if (isExpressLike) return arguments[1].status(putRes.status).json(errObj);
-      return new Response(JSON.stringify(errObj), { status: putRes.status });
+      if (isExpressLike) {
+        const res = arguments[1];
+        Object.entries(corsHeaders).forEach(([k, v]) => res.setHeader(k, v));
+        return res.status(putRes.status).json(errObj);
+      }
+      return new Response(JSON.stringify(errObj), {
+        status: putRes.status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
 
     // Give GitHub API 1.5 seconds to propagate the new workflow file before dispatching
@@ -296,13 +343,27 @@ ${iconStep}
       const errorText = await dispatchRes.text();
       console.error('GitHub API Error Dispatch:', errorText);
       const errObj = { error: 'Gagal mencetuskan build di repo anda (Dispatcher Error).', details: errorText };
-      if (isExpressLike) return arguments[1].status(dispatchRes.status).json(errObj);
-      return new Response(JSON.stringify(errObj), { status: dispatchRes.status });
+      if (isExpressLike) {
+        const res = arguments[1];
+        Object.entries(corsHeaders).forEach(([k, v]) => res.setHeader(k, v));
+        return res.status(dispatchRes.status).json(errObj);
+      }
+      return new Response(JSON.stringify(errObj), {
+        status: dispatchRes.status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
 
     const successObj = { success: true, message: 'Proses Build telah dimulakan pada Repo anda! Sila semak tab Actions / Releases di repository anda sebentar lagi.' };
-    if (isExpressLike) return arguments[1].status(200).json(successObj);
-    return new Response(JSON.stringify(successObj), { status: 200 });
+    if (isExpressLike) {
+      const res = arguments[1];
+      Object.entries(corsHeaders).forEach(([k, v]) => res.setHeader(k, v));
+      return res.status(200).json(successObj);
+    }
+    return new Response(JSON.stringify(successObj), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
 
   } catch (error) {
     console.error('Fetch Error:', error);
