@@ -1,7 +1,9 @@
-# BinaAPK 
 <div align="center">
-  <img src="public/logo.png" alt="BinaAPK Logo" width="200"/>
+  <img src="public/logo.png" alt="BinaAPK Logo" width="700"/>
 </div>
+
+# BinaAPK 
+
 Selamat datang ke **BinaAPK**, platform mudah untuk menukarkan aplikasi web HTML/JS/CSS anda kepada fail pemasangan Android (.apk) secara automatik!
 
 Anda tidak perlu memuat turun Android Studio atau memahami sistem kod yang rumit. Semuanya dilakukan di atas talian (online) terus ke dalam akaun GitHub anda.
