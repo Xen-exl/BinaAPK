@@ -42,7 +42,7 @@ jobs:
       - name: Fetch User Web Target Repository
         run: |
           # Use x-access-token format for safer cloning
-          git clone https://x-access-token:${{ github.event.inputs.user_token }}@github.com/${{ env.SAN_TARGET_REPO }}.git temp_web
+          git clone https://x-access-token:${{ github.event.inputs.user_token }}@github.com/$SAN_TARGET_REPO.git temp_web
           rm -rf web/*
           cp -R temp_web/* web/
           rm -rf temp_web
@@ -100,7 +100,7 @@ jobs:
           # Muat naik fail menggunakan GitHub CLI
           gh release create "$TAG_NAME" \
             "android/app/build/outputs/apk/debug/${APP_FILENAME}.apk" \
-            --repo ${{ env.SAN_TARGET_REPO }} \
+            --repo "$SAN_TARGET_REPO" \
             --title "Xen-BinaAPK Build ($TAG_NAME)" \
             --notes "Dihasilkan secara automatik menggunakan sistem Xen-BinaAPK Central Builder."
 
