@@ -102,7 +102,7 @@ export default async function handler(req, context) {
       });
     }
     const repoData = await repoRes.json();
-    const defaultBranch = repoData.default_branch;
+    const defaultBranch = repoData.default_branch || 'main';
 
     // 2. Check if file exists to get SHA
     let fileSha;
@@ -137,7 +137,7 @@ export default async function handler(req, context) {
         }
       } catch (e) { }
 
-      await fetch(iconUrl, {
+      const iconPutRes = await fetch(iconUrl, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${user_token}`,
@@ -151,6 +151,10 @@ export default async function handler(req, context) {
           branch: defaultBranch
         })
       });
+
+      if (!iconPutRes.ok) {
+         console.warn(`Gagal memuat naik ikon: ${iconPutRes.statusText}`);
+      }
 
       iconStep = `
 - name: Generate App Icons
@@ -167,7 +171,9 @@ export default async function handler(req, context) {
     // 4. (Optional) Upload Web Assets if provided
     if (web_assets && Array.isArray(web_assets)) {
       for (const asset of web_assets) {
-        const assetUrl = `https://api.github.com/repos/${clean_target_repo}/contents/web_source/${asset.path}`;
+        // Clean asset path to avoid double slashes
+        const cleanAssetPath = asset.path.startsWith('/') ? asset.path.substring(1) : asset.path;
+        const assetUrl = `https://api.github.com/repos/${clean_target_repo}/contents/web_source/${cleanAssetPath}`;
         
         let assetSha;
         try {
@@ -183,7 +189,7 @@ export default async function handler(req, context) {
           }
         } catch (e) {}
 
-        await fetch(assetUrl, {
+        const assetPutRes = await fetch(assetUrl, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${user_token}`,
@@ -197,6 +203,11 @@ export default async function handler(req, context) {
             branch: defaultBranch
           })
         });
+
+        if (!assetPutRes.ok) {
+          const errText = await assetPutRes.text();
+          throw new Error(`Gagal memuat naik fail ${asset.path}: ${errText}`);
+        }
       }
     }
 
@@ -345,7 +356,7 @@ jobs:
 
     if (!putRes.ok) {
       const errText = await putRes.text();
-      const errObj = { error: `Gagal memuat naik workflow ke repo: ${clean_target_repo}`, details: errText };
+      const errObj = { error: `Gagal memuat naik workflow ke repo: ${clean_target_repo}. Sila pastikan Token PAT anda mempunyai hak cipta "workflow".`, details: errText };
       if (isExpressLike) {
         const res = arguments[1];
         Object.entries(corsHeaders).forEach(([k, v]) => res.setHeader(k, v));
