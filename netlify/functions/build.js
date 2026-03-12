@@ -50,7 +50,7 @@ export default async function handler(req, context) {
     });
   }
 
-  const { target_repo, user_token, app_name, app_id, app_icon_base64 } = bodyData;
+  const { target_repo, user_token, app_name, app_id, app_icon_base64, web_assets } = bodyData;
 
   if (!target_repo || !user_token || !app_name || !app_id) {
     const errObj = { error: 'Sila lengkapkan semua medan yang wajib.' };
@@ -150,15 +150,51 @@ export default async function handler(req, context) {
       });
 
       iconStep = `
-      - name: Generate App Icons
-        working-directory: ./builder
-        run: |
-          if [ -f "../user_repo/android-icon.png" ]; then
-            cp ../user_repo/android-icon.png ./icon.png
-            npm install @capacitor/assets --no-save
-            npx capacitor-assets generate --android --assetPath .
-          fi
+- name: Generate App Icons
+  working-directory: ./builder
+  run: |
+    if [ -f "../user_repo/android-icon.png" ]; then
+      cp ../user_repo/android-icon.png ./icon.png
+      npm install @capacitor/assets --no-save
+      npx capacitor-assets generate --android --assetPath .
+    fi
 `;
+    }
+
+    // 4. (Optional) Upload Web Assets if provided
+    if (web_assets && Array.isArray(web_assets)) {
+      for (const asset of web_assets) {
+        const assetUrl = `https://api.github.com/repos/${clean_target_repo}/contents/web_source/${asset.path}`;
+        
+        let assetSha;
+        try {
+          const assetGet = await fetch(assetUrl, {
+            headers: {
+              'Authorization': `Bearer ${user_token}`,
+              'Accept': 'application/vnd.github.v3+json'
+            }
+          });
+          if (assetGet.ok) {
+            const assetJson = await assetGet.json();
+            assetSha = assetJson.sha;
+          }
+        } catch (e) {}
+
+        await fetch(assetUrl, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${user_token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: `Upload web asset ${asset.path} via BinaAPK`,
+            content: asset.content,
+            sha: assetSha,
+            branch: defaultBranch
+          })
+        });
+      }
     }
 
     const workflowContent = `name: BinaAPK Builder
@@ -204,9 +240,8 @@ jobs:
           ls -F user_repo/
           
           # Find the directory containing index.html in the user repo
-          # We check common build output directories first, then root
           WEB_SOURCE_DIR=""
-          for dir in "out" "dist" "build" "public" "."; do
+          for dir in "web_source" "out" "dist" "build" "public" "."; do
             if [ -f "user_repo/$dir/index.html" ]; then
               WEB_SOURCE_DIR="user_repo/$dir"
               echo "Found index.html in $WEB_SOURCE_DIR"
