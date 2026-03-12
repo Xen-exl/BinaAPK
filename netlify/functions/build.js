@@ -172,14 +172,14 @@ export default async function handler(req, context) {
       }
 
       iconStep = `
-- name: Generate App Icons
-  working-directory: ./builder
-  run: |
-    if [ -f "../user_repo/android-icon.png" ]; then
-      cp ../user_repo/android-icon.png ./icon.png
-      npm install @capacitor/assets --no-save
-      npx capacitor-assets generate --android --assetPath .
-    fi
+      - name: Generate App Icons
+        working-directory: ./builder
+        run: |
+          if [ -f "../user_repo/android-icon.png" ]; then
+            cp ../user_repo/android-icon.png ./icon.png
+            npm install @capacitor/assets --no-save
+            npx capacitor-assets generate --android --assetPath .
+          fi
 `;
     }
 
@@ -385,8 +385,8 @@ jobs:
       });
     }
 
-    // Give GitHub API 1.5 seconds to propagate the new workflow file before dispatching
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Give GitHub API 3 seconds to propagate the new workflow file before dispatching
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
     // 4. Dispatch the workflow
     const dispatchRes = await fetch(`https://api.github.com/repos/${clean_target_repo}/actions/workflows/xen-binaapk-build.yml/dispatches`, {
