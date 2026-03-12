@@ -70,7 +70,10 @@ export default async function handler(req, context) {
   if (clean_target_repo.startsWith('http')) {
     try {
       const urlObj = new URL(clean_target_repo);
-      clean_target_repo = urlObj.pathname.substring(1).replace(/\.git$/, '');
+      const paths = urlObj.pathname.split('/').filter(p => p !== '');
+      if (paths.length >= 2) {
+        clean_target_repo = `${paths[0]}/${paths[1].replace(/\.git$/, '')}`;
+      }
     } catch (e) { }
   }
 
