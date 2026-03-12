@@ -64,17 +64,30 @@ export default async function handler(req, context) {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
+  // Ultra-robust sanitization for target_repo
+  let clean_target_repo = target_repo.trim()
+    .replace(/^https?:\/\//, '') // remove http/https
+    .replace(/^www\./, '')       // remove www.
+    .replace(/^github\.com\//, '') // remove github.com/
+    .replace(/\/$/, '');         // remove trailing slash
+    
+  // If it's still a full path (e.g. user/repo/tree/main), extract only owner/repo
+  const parts = clean_target_repo.split('/').filter(p => p !== '');
+  if (parts.length >= 2) {
+    clean_target_repo = `${parts[0]}/${parts[1].replace(/\.git$/, '')}`;
+  }
 
-  // Sanitize the target_repo to make sure it's just 'username/repo' and not a full URL
-  let clean_target_repo = target_repo.trim();
-  if (clean_target_repo.startsWith('http')) {
-    try {
-      const urlObj = new URL(clean_target_repo);
-      const paths = urlObj.pathname.split('/').filter(p => p !== '');
-      if (paths.length >= 2) {
-        clean_target_repo = `${paths[0]}/${paths[1].replace(/\.git$/, '')}`;
-      }
-    } catch (e) { }
+  if (!target_repo || !user_token || !app_name || !app_id) {
+    const errObj = { error: 'Sila lengkapkan semua medan yang wajib.' };
+    if (isExpressLike) {
+      const res = arguments[1];
+      Object.entries(corsHeaders).forEach(([k, v]) => res.setHeader(k, v));
+      return res.status(400).json(errObj);
+    }
+    return new Response(JSON.stringify(errObj), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
   }
 
   try {
@@ -90,7 +103,7 @@ export default async function handler(req, context) {
     });
 
     if (!repoRes.ok) {
-      const errObj = { error: 'Gagal mengakses repository. Sila pastikan URL dan Token PAT anda sah dan mempunyai hak cipta "repo" & "workflow".' };
+      const errObj = { error: `Gagal mengakses repository (${clean_target_repo}). Sila pastikan URL dan Token PAT anda sah dan mempunyai hak cipta "repo" & "workflow".` };
       if (isExpressLike) {
         const res = arguments[1];
         Object.entries(corsHeaders).forEach(([k, v]) => res.setHeader(k, v));
@@ -345,7 +358,7 @@ jobs:
 
     if (!putRes.ok) {
       const errText = await putRes.text();
-      const errObj = { error: 'Gagal memuat naik workflow ke repo anda.', details: errText };
+      const errObj = { error: `Gagal memuat naik workflow ke repo: ${clean_target_repo}`, details: errText };
       if (isExpressLike) {
         const res = arguments[1];
         Object.entries(corsHeaders).forEach(([k, v]) => res.setHeader(k, v));
