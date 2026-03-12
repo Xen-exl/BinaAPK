@@ -104,6 +104,21 @@ export default async function handler(req, context) {
     const repoData = await repoRes.json();
     const defaultBranch = repoData.default_branch || 'main';
 
+    // 1.1 Check write permissions
+    const canPush = repoData.permissions && repoData.permissions.push;
+    if (!canPush) {
+      const errObj = { error: `Anda tiada akses tulis (push) ke repository ${clean_target_repo}. Sila pastikan Token PAT anda mempunyai akses "repo" yang mencukupi.` };
+      if (isExpressLike) {
+        const res = arguments[1];
+        Object.entries(corsHeaders).forEach(([k, v]) => res.setHeader(k, v));
+        return res.status(403).json(errObj);
+      }
+      return new Response(JSON.stringify(errObj), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     // 2. Check if file exists to get SHA
     let fileSha;
     const getRes = await fetch(fileUrl, {
@@ -121,7 +136,7 @@ export default async function handler(req, context) {
     let iconStep = '';
     if (app_icon_base64) {
       const iconPath = 'android-icon.png';
-      const iconUrl = `https://api.github.com/repos/${clean_target_repo}/contents/${iconPath}`;
+      const iconUrl = `https://api.github.com/repos/${clean_target_repo}/contents/${encodeURIComponent(iconPath)}`;
 
       let iconSha;
       try {
@@ -173,7 +188,8 @@ export default async function handler(req, context) {
       for (const asset of web_assets) {
         // Clean asset path to avoid double slashes
         const cleanAssetPath = asset.path.startsWith('/') ? asset.path.substring(1) : asset.path;
-        const assetUrl = `https://api.github.com/repos/${clean_target_repo}/contents/web_source/${cleanAssetPath}`;
+        const encodedPath = cleanAssetPath.split('/').map(p => encodeURIComponent(p)).join('/');
+        const assetUrl = `https://api.github.com/repos/${clean_target_repo}/contents/web_source/${encodedPath}`;
         
         let assetSha;
         try {
@@ -206,7 +222,8 @@ export default async function handler(req, context) {
 
         if (!assetPutRes.ok) {
           const errText = await assetPutRes.text();
-          throw new Error(`Gagal memuat naik fail ${asset.path}: ${errText}`);
+          const errDetail = JSON.parse(errText);
+          throw new Error(`Gagal memuat naik fail ${asset.path}: ${errDetail.message || errText}`);
         }
       }
     }
