@@ -77,19 +77,6 @@ export default async function handler(req, context) {
     clean_target_repo = `${parts[0]}/${parts[1].replace(/\.git$/, '')}`;
   }
 
-  if (!target_repo || !user_token || !app_name || !app_id) {
-    const errObj = { error: 'Sila lengkapkan semua medan yang wajib.' };
-    if (isExpressLike) {
-      const res = arguments[1];
-      Object.entries(corsHeaders).forEach(([k, v]) => res.setHeader(k, v));
-      return res.status(400).json(errObj);
-    }
-    return new Response(JSON.stringify(errObj), {
-      status: 400,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
-  }
-
   try {
     const workflowPath = '.github/workflows/xen-binaapk-build.yml';
     const fileUrl = `https://api.github.com/repos/${clean_target_repo}/contents/${workflowPath}`;
